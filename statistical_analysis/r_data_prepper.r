@@ -6,8 +6,10 @@ library(tidyverse)
 ## DATA LOADING AND PREPPING ################################################################################
 yaml <- yaml.load_file(file.path(getwd(), "config.yaml")) # only works after activating venv
 
-baseline <- read_excel(paste0(yaml$first_analysis$output_dir, "/baseline.xlsx"))
-invasive <- read_excel("C:/WorkingData/Documents/3_Research/IVUS_data.xlsx")
+# baseline <- read_excel(paste0(yaml$first_analysis$output_dir, "/baseline.xlsx"))
+baseline <- read_excel("C:/WorkingData/Documents/2_Coding/Python/NARCO_analysis_team/dataframes/baseline_marius.xlsx")
+invasive <- read_excel("C:/Users/ansel/OneDrive/Dokumente/3_Research/IVUS_data.xlsx")
+pressure <- read_excel("C:/Users/ansel/OneDrive/Dokumente/3_Research/results.xlsx")
 
 # remove the first row, which is test data
 baseline <- baseline[-1, ]
@@ -265,4 +267,34 @@ baseline <- baseline %>% mutate(
   ccta_mla_ln = pmax(ccta_pn_dist, ccta_ostial_pn),
 )
 
+pressure <- pressure %>% mutate(
+  patient_id = toupper(patient_id),
+)
+
+baseline <- left_join(as_tibble(baseline), as_tibble(pressure), by = "patient_id")
+
+
+# applying the shift from invasive data to the pressure curves
+baseline <- baseline %>% mutate(
+  rest_diff = ifelse(is.na(inv_pdpa), inv_rfr - pdpa_mean_rest, inv_pdpa - pdpa_mean_rest),
+  ado_diff = inv_ffrado - pdpa_mean_ado,
+  dobu_diff = inv_ffrdobu - pdpa_mean_dobu
+)
+
+baseline <- baseline %>% mutate(
+  iFR_mean_rest = iFR_mean_rest + rest_diff,
+  mid_systolic_ratio_mean_rest = mid_systolic_ratio_mean_rest + rest_diff,
+  pdpa_mean_rest = pdpa_mean_rest + rest_diff,
+  iFR_mean_ado = iFR_mean_ado + ado_diff,
+  mid_systolic_ratio_mean_ado = mid_systolic_ratio_mean_ado + ado_diff,
+  pdpa_mean_ado = pdpa_mean_ado + ado_diff,
+  iFR_mean_dobu = iFR_mean_dobu + dobu_diff
+)
+
+# if pdpa_mean_rest is NA, then take inv_pdpa or inv_rfr
+baseline <- baseline %>% mutate(
+  pdpa_mean_rest = ifelse(is.na(pdpa_mean_rest), ifelse(is.na(inv_pdpa), inv_rfr, inv_pdpa), pdpa_mean_rest)
+)
+
 saveRDS(baseline, file = paste0(yaml$demographics$output_dir_data, "/baseline.rds"))
+# saveRDS(baseline, file= "C:/Users/ansel/OneDrive/Dokumente/3_Research/7_NARCOfunctional/baseline.rds")

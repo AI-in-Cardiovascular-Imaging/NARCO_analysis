@@ -387,10 +387,19 @@ for (i in seq_along(yaml$demographics$dict_rename)) {
 #                                 p_value_sim_holm = p.adjust(`P value simulated`, method = "holm"))
 
 # for invasive manuscript
+baseline <- baseline %>% filter(caa_course___0 == "yes")
+
+# invasive
 final <- baseline %>% 
   select("record_id", all_of(vars), "ffr_0.8") %>%
   filter(record_id != 109) %>%
   filter(!is.na(inv_ivusdobu_mla) & !is.na(inv_ffrdobu))
+
+# # functional
+# final <- baseline %>% 
+#   filter(record_id != 109, patient_id != "NARCO_250") %>%
+#   filter(!is.na(funct_spect_date) | !is.na(funct_pet_date)) %>%
+#   filter(!is.na(inv_ffrdobu))
 
 dataframe_ffr0.8 <- fill_dataframe(final, "ffr_0.8", dataframe_calculations)
 p_values_ffr0.8 <- statistics_dataframe(final, dataframe_ffr0.8, "ffr_0.8")
@@ -412,7 +421,7 @@ ffr0.8_df_clean <- ffr0.8_df_clean %>% mutate(p_value_classic_fdr = p.adjust(`P 
                                 p_value_sim_holm = p.adjust(`P value simulated`, method = "holm"))
 
 
-write.csv(ffr0.8_df_clean, "C:/WorkingData/Documents/2_Coding/Python/NARCO_analysis/statistical_analysis/data/ffr0.8_df.csv", row.names = FALSE)
+write.csv(ffr0.8_df_clean, "C:/WorkingData/Documents/2_Coding/Python/NARCO_analysis_team/statistical_analysis/data/ffr0.8_df.csv", row.names = FALSE)
 
 saveRDS(ffr0.8_df_clean, file = paste0(yaml$demographics$output_dir_data, "/ffr0.8_df.rds"))
 

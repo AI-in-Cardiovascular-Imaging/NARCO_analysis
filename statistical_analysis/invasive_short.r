@@ -284,10 +284,95 @@ colnames(ivus_df) <- c("method", "value", "ffr_value")
 plot_ffr_line <- ggpaired(ivus_df, ivus_df, x = "method", y = "value", color = "method", 
                         line.color = "#bebebec7", line.size = 0.4, palette = c("#193bac", "#ebc90b", "#bebebec7", "red")) +
   geom_point(aes(color = ffr_value)) +
-  stat_compare_means(paired = TRUE) +
+  # stat_compare_means(paired = TRUE) +
   scale_y_continuous(breaks = seq(0, 1, 0.05))  + 
   geom_hline(yintercept = 0.8, linetype = "dashed", color = "red") + # Plot 1
   ylab("FFR")
+
+# iFR plot
+# new dataset ifr data with only non missing values for iFR_mean_rest and iFR_mean_dobu
+ifr_data <- baseline %>% filter(!is.na(iFR_mean_rest) & !is.na(iFR_mean_dobu))
+n <- nrow(ifr_data)
+inv_var1 <- pull(ifr_data, iFR_mean_rest)
+inv_var2 <- pull(ifr_data, iFR_mean_dobu)
+iFR_mean_rest <- pull(ifr_data, iFR_mean_rest)
+iFR_mean_rest <- ifelse(iFR_mean_rest <= 0.8, 1, 0)
+iFR_mean_dobu <- pull(ifr_data, iFR_mean_dobu)
+iFR_mean_dobu <- ifelse(iFR_mean_dobu <= 0.8, 1, 0)
+method_1 <- rep("iFR rest", n)
+method_2 <- rep("iFR dobu", n)
+ivus_df <- data.frame(method = c(method_1, method_2), 
+                      value = c(inv_var1, inv_var2),
+                      ffr_value = c(iFR_mean_rest, iFR_mean_dobu))
+ivus_df$ffr_value <- factor(ivus_df$ffr_value, levels = c(0, 1), labels = c("iFR > 0.8", "iFR <= 0.8"))
+ivus_df$method <- factor(ivus_df$method, levels = c("iFR rest", "iFR dobu"), ordered = TRUE)
+colnames(ivus_df) <- c("method", "value", "ffr_value")
+
+plot_ifr_line <- ggpaired(ivus_df, ivus_df, x = "method", y = "value", color = "method", 
+                        line.color = "#bebebec7", line.size = 0.4, palette = c("#193bac", "#ebc90b", "#bebebec7", "red")) +
+  geom_point(aes(color = ffr_value)) +
+  stat_compare_means(paired = TRUE) +
+  scale_y_continuous(breaks = seq(0, 1, 0.05))  + 
+  geom_hline(yintercept = 0.75, linetype = "dashed", color = "red") + # Plot 1
+  geom_hline(yintercept = 0.8, linetype = "dashed", color = "orange") + # Plot 1
+  geom_hline(yintercept = 0.89, linetype = "dashed", color = "blue") + # Plot 1
+  ylab("iFR")
+
+# FFRdobu versus iFRdobu
+# new dataset ifr data with only non missing values for iFR_mean_rest and iFR_mean_dobu
+comp_data <- baseline %>% filter(!is.na(iFR_mean_dobu) & !is.na(inv_ffrdobu))
+n <- nrow(comp_data)
+inv_var1 <- pull(comp_data, inv_ffrdobu)
+inv_var2 <- pull(comp_data, iFR_mean_dobu)
+inv_ffrdobu <- pull(comp_data, inv_ffrdobu)
+inv_ffrdobu <- ifelse(inv_ffrdobu <= 0.8, 1, 0)
+iFR_mean_dobu <- pull(comp_data, iFR_mean_dobu)
+iFR_mean_dobu <- ifelse(iFR_mean_dobu <= 0.8, 1, 0)
+method_1 <- rep("FFRdobu", n)
+method_2 <- rep("iFRdobu", n)
+ivus_df <- data.frame(method = c(method_1, method_2), 
+                      value = c(inv_var1, inv_var2),
+                      ffr_value = c(inv_ffrdobu, iFR_mean_dobu))
+ivus_df$ffr_value <- factor(ivus_df$ffr_value, levels = c(0, 1), labels = c("pdpa > 0.8", "pdpa <= 0.8"))
+ivus_df$method <- factor(ivus_df$method, levels = c("FFRdobu", "iFRdobu"), ordered = TRUE)
+colnames(ivus_df) <- c("method", "value", "ffr_value")
+
+plot_ffr_ifr_line <- ggpaired(ivus_df, ivus_df, x = "method", y = "value", color = "method", 
+                        line.color = "#bebebec7", line.size = 0.4, palette = c("#193bac", "#ebc90b", "#bebebec7", "red")) +
+  geom_point(aes(color = ffr_value)) +
+  stat_compare_means(paired = TRUE) +
+  scale_y_continuous(breaks = seq(0, 1, 0.05))  + 
+  geom_hline(yintercept = 0.75, linetype = "dashed", color = "red") + # Plot 1
+  geom_hline(yintercept = 0.8, linetype = "dashed", color = "orange") + # Plot 1
+  ylab("pdpa")
+
+# FFRado versus iFRado
+# new dataset ifr data with only non missing values for iFR_mean_rest and iFR_mean_dobu
+comp_data <- baseline %>% filter(!is.na(iFR_mean_ado) & !is.na(inv_ffrado))
+n <- nrow(baseline)
+inv_var1 <- pull(baseline, inv_ffrado)
+inv_var2 <- pull(baseline, iFR_mean_ado)
+inv_ffrado <- pull(baseline, inv_ffrado)
+inv_ffrado <- ifelse(inv_ffrado <= 0.8, 1, 0)
+iFR_mean_ado <- pull(baseline, iFR_mean_ado)
+iFR_mean_ado <- ifelse(iFR_mean_ado <= 0.8, 1, 0)
+method_1 <- rep("FFRado", n)
+method_2 <- rep("iFRado", n)
+ivus_df <- data.frame(method = c(method_1, method_2), 
+                      value = c(inv_var1, inv_var2),
+                      ffr_value = c(inv_ffrado, iFR_mean_ado))
+ivus_df$ffr_value <- factor(ivus_df$ffr_value, levels = c(0, 1), labels = c("pdpa > 0.8", "pdpa <= 0.8"))
+ivus_df$method <- factor(ivus_df$method, levels = c("FFRado", "iFRado"), ordered = TRUE)
+colnames(ivus_df) <- c("method", "value", "ffr_value")
+
+plot_ffr_ifr_line_ado <- ggpaired(ivus_df, ivus_df, x = "method", y = "value", color = "method", 
+                        line.color = "#bebebec7", line.size = 0.4, palette = c("#193bac", "#ebc90b", "#bebebec7", "red")) +
+  geom_point(aes(color = ffr_value)) +
+  stat_compare_means(paired = TRUE) +
+  scale_y_continuous(breaks = seq(0, 1, 0.05))  + 
+  geom_hline(yintercept = 0.75, linetype = "dashed", color = "red") + # Plot 1
+  geom_hline(yintercept = 0.8, linetype = "dashed", color = "orange") + # Plot 1
+  ylab("pdpa")
 
 pressure_rest_ado_dobu <- create_boxplot(baseline, c("inv_rfr", "inv_ffrado", "inv_ffrdobu"), seq(0, 1, 0.1))
 ln_rest_ado_dobu <- create_boxplot(baseline, c("inv_ivusrest_mla_ln", "inv_ivusado_mla_ln", "inv_ivusdobu_mla_ln_any"), seq(0, 100, 10))
@@ -295,6 +380,9 @@ ln_rest_ado_dobu <- create_boxplot(baseline, c("inv_ivusrest_mla_ln", "inv_ivusa
 ggsave(paste0(output_dir,"/plot_ffr_line.png"), plot_ffr_line, width = 4, height = 5)
 ggsave(paste0(output_dir,"/pressure_rest_ado_dobu.png"), pressure_rest_ado_dobu, width = 6, height = 5)
 ggsave(paste0(output_dir,"/ln_rest_ado_dobu.png"), ln_rest_ado_dobu, width = 6, height = 5)
+ggsave(paste0(output_dir,"/plot_ifr_line.png"), plot_ifr_line, width = 4, height = 5)
+ggsave(paste0(output_dir,"/plot_ffr_ifr_line.png"), plot_ffr_ifr_line, width = 4, height = 5)
+ggsave(paste0(output_dir,"/plot_ffr_ifr_line_ado.png"), plot_ffr_ifr_line_ado, width = 4, height = 5)
 
 # linear relationships
 mla_ffr <- ggplot(baseline, aes(x = inv_ivusrest_mla, y = inv_ffrdobu)) +
@@ -355,17 +443,18 @@ rest_vars <- c("inv_ffrado",
                 "iFR_mean_rest",
                 "mid_systolic_ratio_mean_rest",
                 "inv_rest_hr", 
-                "inv_rest_aosys", 
+                "inv_rest_aosys",
                 "inv_rest_aodia",
-               "inv_rest_aomean")
+               "inv_rest_aomean"
+               )
 
 dobu_vars <- c("inv_ffrdobu", 
                 "pdpa_mean_dobu",
                 "iFR_mean_dobu",
                 "mid_systolic_ratio_mean_dobu",
                 "inv_dobu_hr",
-               "inv_dobu_aosys", 
-               "inv_dobu_aodia", 
+               "inv_dobu_aosys",
+               "inv_dobu_aodia",
                "inv_dobu_aomean")
 
 # Initialize a list to store results
@@ -441,7 +530,9 @@ baseline <- baseline %>% mutate(
   inv_hr_change = inv_dobu_hr - inv_rest_hr,
   inv_aosys_change = inv_dobu_aosys - inv_rest_aosys,
   inv_aodia_change = inv_dobu_aodia - inv_rest_aodia,
-  inv_aomean_change = inv_dobu_aomean - inv_rest_aomean
+  inv_aomean_change = inv_dobu_aomean - inv_rest_aomean,
+  ifr_change = iFR_mean_dobu - iFR_mean_rest,
+  mid_systolic_ratio_change = mid_systolic_ratio_mean_dobu - mid_systolic_ratio_mean_rest,
 )
 
 relevant <- baseline %>% filter(inv_ffrdobu <= 0.8)
@@ -451,10 +542,12 @@ inv_changes <- c( "ffr_change",
 "inv_hr_change",
 "inv_aosys_change",
 "inv_aodia_change",
-"inv_aomean_change")
+"inv_aomean_change",
+"ifr_change",
+"mid_systolic_ratio_change")
 
 p_values <- data.frame(
-  Variable = c("FFR", "Heart rate", "Aortic systolic pressure", "Aortic diastolic pressure", "Aortic mean pressure"),
+  Variable = c("FFR", "Heart rate", "Aortic systolic pressure", "Aortic diastolic pressure", "Aortic mean pressure", "iFR", "Mid-systolic ratio"),
   Test = NA,
   P_Value = NA
 )
@@ -482,11 +575,17 @@ results_list <- list(
 # Optionally, save the results to a CSV file
 write_xlsx(results_list, "C:/WorkingData/Documents/2_Coding/Python/NARCO_analysis_team/statistical_analysis/data/invasive_change.xlsx")
 
-
 # baseline IVUS variables to predict FFR change
 ivus_vars <- c("inv_ivusrest_mla", 
+                "inv_ivusrest_imla_w",
                "inv_ivusrest_mla_ellip",
-               "inv_ivusrest_mla_ln", 
+               "inv_ivusrest_mla_ln",
+              #  "inv_ivusrest_ostial_a",
+                # "inv_ivusrest_ostial_w",
+                # "iFR_mean_rest",
+                # "mid_systolic_ratio_mean_rest",
+                # "iFR_mean_ado",
+                # "mid_systolic_ratio_mean_ado",
                "inv_ffrado")
 
 logistic_results_ffr_0.8 <- perform_logistic_regression("ffr_0.8", baseline, ivus_vars)
@@ -521,11 +620,21 @@ mdl_mla_ffr <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_mla
 mdl_mla_ellip_ffr <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_mla_ellip")[[1]]
 mdl_mla_ln_ffr <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_mla_ln")[[1]]
 mdl_ffrado <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ffrado")[[1]]
+mdl_ifr_rest <- simple_logistic_regression(baseline, "ffr_0.8", "iFR_mean_rest")[[1]]
+mdl_ifr_ado <- simple_logistic_regression(baseline, "ffr_0.8", "iFR_mean_ado")[[1]]
+mdl_imla_w <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_imla_w")[[1]]
+mdl_ostial_a <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_ostial_a")[[1]]
+mdl_ostial_w <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_ostial_w")[[1]]
 
 prediction_data_mla <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_mla")[[2]]
 prediction_data_ellip <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_mla_ellip")[[2]]
 prediction_data_mla_ln <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_mla_ln")[[2]]
 prediction_data_ffrado <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ffrado")[[2]]
+prediction_data_ifr_rest <- simple_logistic_regression(baseline, "ffr_0.8", "iFR_mean_rest")[[2]]
+prediction_data_ifr_ado <- simple_logistic_regression(baseline, "ffr_0.8", "iFR_mean_ado")[[2]]
+prediction_data_imla_w <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_imla_w")[[2]]
+prediction_data_ostial_a <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_ostial_a")[[2]]
+prediction_data_ostial_w <- simple_logistic_regression(baseline, "ffr_0.8", "inv_ivusrest_ostial_w")[[2]]
 
 data_ivus <- baseline %>% select(ffr_0.8, inv_ivusrest_mla) %>% drop_na()
 roc_mla <- roc(data_ivus$ffr_0.8, mdl_mla_ffr$fitted.values)
@@ -535,21 +644,43 @@ data_ivus <- baseline %>% select(ffr_0.8, inv_ivusrest_mla_ln) %>% drop_na()
 roc_mla_ln <- roc(data_ivus$ffr_0.8, mdl_mla_ln_ffr$fitted.values)
 data_ivus <- baseline %>% select(ffr_0.8, inv_ffrado) %>% drop_na()
 roc_ffrado <- roc(data_ivus$ffr_0.8, mdl_ffrado$fitted.values)
+data_ivus <- baseline %>% select(ffr_0.8, iFR_mean_rest) %>% drop_na()
+roc_ifr_rest <- roc(data_ivus$ffr_0.8, mdl_ifr_rest$fitted.values)
+data_ivus <- baseline %>% select(ffr_0.8, iFR_mean_ado) %>% drop_na()
+roc_ifr_ado <- roc(data_ivus$ffr_0.8, mdl_ifr_ado$fitted.values)
+data_ivus <- baseline %>% select(ffr_0.8, inv_ivusrest_imla_w) %>% drop_na()
+roc_imla_w <- roc(data_ivus$ffr_0.8, mdl_imla_w$fitted.values)
+data_ivus <- baseline %>% select(ffr_0.8, inv_ivusrest_ostial_a) %>% drop_na()
+roc_ostial_a <- roc(data_ivus$ffr_0.8, mdl_ostial_a$fitted.values)
+data_ivus <- baseline %>% select(ffr_0.8, inv_ivusrest_ostial_w) %>% drop_na()
+roc_ostial_w <- roc(data_ivus$ffr_0.8, mdl_ostial_w$fitted.values)
 
 # Define test sets
 test_set <- list(
   coords(roc_mla), coords(roc_mla_ellip),
   coords(roc_mla_ln), coords(roc_ffrado)
+  # ,
+  # coords(roc_ifr_rest), coords(roc_ifr_ado),
+  # coords(roc_imla_w), coords(roc_ostial_a),
+  # coords(roc_ostial_w)
 )
 
 prediction_data <- list(
   prediction_data_mla, prediction_data_ellip,
   prediction_data_mla_ln, prediction_data_ffrado
+  # ,
+  # prediction_data_ifr_rest, prediction_data_ifr_ado,
+  # prediction_data_imla_w, prediction_data_ostial_a,
+  # prediction_data_ostial_w
 )
 
 variables <- c(
   "IVUS rest MLA", "IVUS rest elliptic ratio",
   "IVUS rest MLA luminal narrowing", "FFR adenosine"
+  # ,
+  # "iFR rest", "iFR adenosine",
+  # "IVUS rest MLA minor axis", "IVUS rest ostial area",
+  # "IVUS rest ostial minor axis"
 )
 
 # Extract thresholds
@@ -594,7 +725,7 @@ for (i in 1:length(thresholds)) {
     closest_index <- which.min(abs(prediction$ffr_0.8 - threshold))
     value <- prediction[[name]][closest_index]
     
-    if (name %in% c("inv_ivusrest_ostial_a_bsa", "inv_ivusrest_imla_bsa", "inv_ivusrest_mla", "inv_ffrado")) {
+    if (name %in% c("inv_ivusrest_ostial_a_bsa", "inv_ivusrest_imla_bsa", "inv_ivusrest_mla", "inv_ffrado", "iFR_mean_rest", "iFR_mean_ado")) {
       table <- baseline %>%
         mutate(pred_label = ifelse(!!sym(name) > value, 0, 1)) %>%
         select(pred_label, ffr_0.8) %>%
@@ -649,7 +780,7 @@ ggroc_mla <- ggroc(roc_list_mla, legacy.axes = TRUE) +
     scale_linetype_manual(values = c("solid", "dashed", "dotted")) +
     theme(legend.position = "none") +
     geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
-    ggtitle("Minimal lumen") +
+    ggtitle("IVUS") +
     theme_classic() + 
     annotate("text", x = 0.7, y = 0.2, label = paste("AUC MLN =", round(roc_mla_ln$auc, 2)), color = "darkblue") +
     annotate("text", x = 0.7, y = 0.1, label = paste("AUC elliptic ratio =", round(roc_mla_ellip$auc, 2)), color = "darkred")
@@ -788,7 +919,7 @@ train_and_evaluate <- function(seed) {
       closest_index <- which.min(abs(predictions - threshold))
       value <- test_data[[ivus_var]][closest_index]
 
-      table <- if (ivus_var %in% c("inv_ivusrest_ostial_a_bsa", "inv_ivusrest_imla_bsa", "inv_ivusrest_mla", "inv_ffrado")) {
+      table <- if (ivus_var %in% c("inv_ivusrest_ostial_a_bsa", "inv_ivusrest_imla_bsa", "inv_ivusrest_mla", "inv_ffrado", "iFR_mean_rest", "iFR_mean_ado")) {
         test_data %>%
           mutate(pred_label = ifelse(!!sym(ivus_var) > value, 0, 1)) %>%
           mutate(ffr_0.8 = ifelse(ffr_0.8 == "Class0", 0, 1)) %>%
@@ -975,6 +1106,36 @@ table <- baseline %>%
 confusion <- conf_mat(table)
 result <- summary(confusion, event_level = "second")
 
+baseline <- baseline %>% mutate(
+  ifr_rest0.89 = ifelse(iFR_mean_rest <= 0.89, 1, 0),
+  ifr_ado0.8 = ifelse(iFR_mean_ado <= 0.8, 1, 0),
+  ifrado0.8_ffrado0.8 = ifelse(inv_ffrado <= 0.8 | inv_ffrado <= 0.8, 1, 0)
+)
+
+table <- baseline %>%
+  select(ifr_rest0.89, ffr_0.8) %>%
+  drop_na() %>%
+  table()
+
+confusion <- conf_mat(table)
+result <- summary(confusion, event_level = "second")
+
+table <- baseline %>%
+  select(ifr_ado0.8, ffr_0.8) %>%
+  drop_na() %>%
+  table()
+
+confusion <- conf_mat(table)
+result <- summary(confusion, event_level = "second")
+
+table <- baseline %>%
+  select(ifrado0.8_ffrado0.8, ffr_0.8) %>%
+  drop_na() %>%
+  table()
+
+confusion <- conf_mat(table)
+result <- summary(confusion, event_level = "second")
+
 ############################################################################################################
 
 # roc curves
@@ -986,30 +1147,61 @@ ggroc(roc_invffrado, legacy.axes = TRUE, color = "darkblue") +
   theme_classic() + 
   annotate("text", x = 0.7, y = 0.3, label = paste("AUC FFR adenosine =", round(roc_invffrado$auc, 2)))
 
+roc_ifrrest <- roc(baseline$ffr_0.8, baseline$iFR_mean_rest)
+ggroc(roc_ifrrest, legacy.axes = TRUE, color = "darkblue") +
+  theme(legend.position = "none") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  ggtitle("iFR") +
+  theme_classic() + 
+  annotate("text", x = 0.7, y = 0.3, label = paste("AUC iFR =", round(roc_ifrrest$auc, 2)))
+
+roc_ifr_ado <- roc(baseline$ffr_0.8, baseline$iFR_mean_ado)
+ggroc(roc_ifr_ado, legacy.axes = TRUE, color = "darkblue") +
+  theme(legend.position = "none") +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  ggtitle("iFR adenosine") +
+  theme_classic() + 
+  annotate("text", x = 0.7, y = 0.3, label = paste("AUC iFR adenosine =", round(roc_ifr_ado$auc, 2)))
+
 # forest plot
 # for hemodynamic and anatomic relevance as predictor
 forest_df_bsa <- data.frame(
     var = c(
-            "Minimal lumen area",
-            "Minimal lumen elliptic ratio",
-            "Maximal lumen narrowing [%]", 
-            "FFR adenosine"
-            ),
+        "Minimal lumen area",
+        "Minimal lumen elliptic ratio",
+        "Maximal lumen narrowing [%]",
+        "FFR adenosine"
+        # ,
+        # "iFR rest",
+        # "iFR adenosine"
+    ),
     odds_ratio = c(
-            exp(mdl_mla_ffr$coefficients[2]),
-            exp(mdl_mla_ellip_ffr$coefficients[2]),
-            exp(mdl_mla_ln_ffr$coefficients[2]),
-            exp(mdl_ffrado$coefficients[2])),
+        exp(mdl_mla_ffr$coefficients[2]),
+        exp(mdl_mla_ellip_ffr$coefficients[2]),
+        exp(mdl_mla_ln_ffr$coefficients[2]),
+        exp(mdl_ffrado$coefficients[2])
+        # ,
+        # exp(mdl_ifr_rest$coefficients[2]),
+        # exp(mdl_ifr_ado$coefficients[2])
+    ),
     lower_ci = c(
-            exp(confint(mdl_mla_ffr))[2],
-            exp(confint(mdl_mla_ellip_ffr))[2],
-            exp(confint(mdl_mla_ln_ffr))[2], 
-            exp(confint(mdl_ffrado))[2]), 
+        exp(confint(mdl_mla_ffr))[2],
+        exp(confint(mdl_mla_ellip_ffr))[2],
+        exp(confint(mdl_mla_ln_ffr))[2], 
+        exp(confint(mdl_ffrado))[2]
+        # , 
+        # exp(confint(mdl_ifr_rest))[2],
+        # exp(confint(mdl_ifr_ado))[2]
+    ),
     upper_ci = c(
-            exp(confint(mdl_mla_ffr))[4],
-            exp(confint(mdl_mla_ellip_ffr))[4],
-            exp(confint(mdl_mla_ln_ffr))[4],  
-            exp(confint(mdl_ffrado))[4])
+        exp(confint(mdl_mla_ffr))[4],
+        exp(confint(mdl_mla_ellip_ffr))[4],
+        exp(confint(mdl_mla_ln_ffr))[4], 
+        exp(confint(mdl_ffrado))[4]
+        # ,
+        # exp(confint(mdl_ifr_rest))[4],
+        # exp(confint(mdl_ifr_ado))[4]
+    )
 )
 
 forest_df_bsa$var <- factor(forest_df_bsa$var, levels = rev(forest_df_bsa$var))
@@ -1212,12 +1404,14 @@ chisq.test(table(above0.8$inv_access_init___0), table(below0.8$inv_access_init__
 # invasive changes above0.8
 # Define the variables for comparison
 rest_vars <- c("inv_ffrado", 
+                "iFR_mean_rest",
                 "inv_rest_hr", 
                 "inv_rest_aosys", 
                 "inv_rest_aodia",
                "inv_rest_aomean")
 
 dobu_vars <- c("inv_ffrdobu", 
+                "iFR_mean_dobu",
                 "inv_dobu_hr",
                "inv_dobu_aosys", 
                "inv_dobu_aodia", 
@@ -1297,12 +1491,14 @@ write.csv(results_df, "statistical_analysis/data/invasive_change_above0.8.csv", 
 # invasive changes below0.8
 # Define the variables for comparison
 rest_vars <- c("inv_ffrado", 
+                "iFR_mean_rest",
                 "inv_rest_hr", 
                 "inv_rest_aosys", 
                 "inv_rest_aodia",
                "inv_rest_aomean")
 
 dobu_vars <- c("inv_ffrdobu", 
+                "iFR_mean_dobu",
                 "inv_dobu_hr",
                "inv_dobu_aosys", 
                "inv_dobu_aodia", 
@@ -1401,3 +1597,50 @@ ggsave(paste0(output_dir,"/graphical_ffr.png"), graphical_ffr, width = 2.5, heig
 test <- baseline %>% select(record_id, ffr_0.8, inv_ivusrest_mla, inv_ffrado)
 
 write.csv(test, "C:/WorkingData/Documents/2_Coding/Python/NARCO_analysis_team/statistical_analysis/data/test.csv", row.names = FALSE)
+
+# baseline IVUS variables to predict FFR change
+resting_pressure_vars <- c("iFR_mean_rest", 
+                "mid_systolic_ratio_mean_rest",
+               "pdpa_mean_rest",
+               "iFR_mean_ado",
+               "mid_systolic_ratio_mean_ado",
+                "pdpa_mean_ado",
+                "integral_aortic_rest",
+                "integral_distal_rest",
+                "integral_diff_rest",
+                "diastolic_integral_aortic_rest",
+               "diastolic_integral_distal_rest",
+               "diastolic_integral_diff_rest",
+               "systolic_integral_aortic_rest",
+               "systolic_integral_distal_rest",
+               "systolic_integral_diff_rest",
+               "integral_aortic_ado",
+                "integral_distal_ado",
+                "integral_diff_ado",
+                "diastolic_integral_aortic_ado",
+                "diastolic_integral_distal_ado",
+                "diastolic_integral_diff_ado",
+                "systolic_integral_aortic_ado",
+                "systolic_integral_distal_ado",
+                "systolic_integral_diff_ado")
+
+logistic_results_ffr_0.8 <- perform_logistic_regression("ffr_0.8", baseline, resting_pressure_vars)
+
+baseline %>% 
+  select(inclusion_date, inv_date) %>% 
+  arrange(inv_date) %>% 
+  # filter(inv_date > "2020-01-01" & inv_date < "2025-01-01") %>%
+  mutate(year = lubridate::year(inv_date)) %>%
+  group_by(year) %>%
+  summarise(count = n()) %>%
+  View()
+
+baseline <- baseline %>% mutate(inv_date = as.Date(inv_date))
+
+ggplot(baseline, aes(x = inv_date)) +
+  geom_histogram(binwidth = 120) +
+  theme_minimal() +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y", limits = as.Date(c("2019-01-01", "2025-01-01"))) +
+  labs(title = "Distribution of Invasive Dates",
+       x = "Invasive Date",
+       y = "Count")
